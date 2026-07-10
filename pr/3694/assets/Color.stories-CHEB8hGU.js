@@ -1,0 +1,12 @@
+import{a0 as e}from"./iframe-DLBv-YrI.js";import{C as s,c as m,b as i,m as n,a}from"./_data-DJcbQ7Od.js";import{b as o}from"./bar-f-dn0WCW.js";import{l}from"./line-B8c261JI.js";import"./preload-helper-Ct5FWWRu.js";import"./linear-gs3faI6G.js";import"./band-B4lqwueb.js";import"./array-2GBN5xbU.js";import"./ChartLegend-Tc-BNNHY.js";import"./ChartSwatch-D5d_bwnb.js";import"./HStack-CiG87BSV.js";import"./Stack-mK8yRBNi.js";import"./stack.stylex-BlarxY2N.js";import"./padding.stylex-Dl2_Pyt1.js";import"./VStack-CgpCEQ_V.js";import"./index-DBWAn80Q.js";import"./index-Cnj2XUlo.js";import"./markColor-BlSKpXCg.js";import"./monotone-DS2qxjW1.js";import"./step-fxRLXcQr.js";const S={title:"Charts/Color",component:s},p=e.jsxs(e.Fragment,{children:[e.jsx(a,{position:"bottom"}),e.jsx(a,{position:"left"})]}),r={render:()=>e.jsx(s,{data:n,xKey:"month",title:"Auto palette",subtitle:"No colors passed — assigned from the theme's categorical palette",series:[o("revenue",{group:"g"}),o("costs",{group:"g"}),l("trend")],legend:!0,grid:e.jsx(i,{}),axes:p,height:320})},t={render:()=>e.jsx(s,{data:m,xKey:"month",title:"Green when positive, red when negative",series:[o("profit",{label:"Profit",color:c=>c.profit>=0?"var(--color-success)":"var(--color-error)"})],legend:!0,grid:e.jsx(i,{}),axes:p,height:320})};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+  render: () => <Chart data={monthlyData} xKey="month" title="Auto palette" subtitle="No colors passed — assigned from the theme's categorical palette" series={[bar('revenue', {
+    group: 'g'
+  }), bar('costs', {
+    group: 'g'
+  }), line('trend')]} legend grid={<ChartGrid />} axes={axes} height={320} />
+}`,...r.parameters?.docs?.source},description:{story:"No colors passed — the chart assigns distinct colors from the theme palette.",...r.parameters?.docs?.description}}};t.parameters={...t.parameters,docs:{...t.parameters?.docs,source:{originalSource:`{
+  render: () => <Chart data={profitLossData} xKey="month" title="Green when positive, red when negative" series={[bar('profit', {
+    label: 'Profit',
+    color: d => d.profit as number >= 0 ? 'var(--color-success)' : 'var(--color-error)'
+  })]} legend grid={<ChartGrid />} axes={axes} height={320} />
+}`,...t.parameters?.docs?.source},description:{story:"Per-datum color via an accessor; the series still shows in the legend.",...t.parameters?.docs?.description}}};const _=["AutoPalette","AccessorColor"];export{t as AccessorColor,r as AutoPalette,_ as __namedExportsOrder,S as default};
