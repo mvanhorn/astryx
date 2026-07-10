@@ -2,6 +2,7 @@
 
 import {AppShell} from '@astryxdesign/core/AppShell';
 import {SharedTopNav} from '../../components/SharedTopNav';
+import {canaryBannerSlot} from '../../components/CanaryBanner';
 import {SiteFooter} from '../../components/SiteFooter';
 import {getCopyrightYear} from '../../lib/copyrightYear';
 import styles from './layout.module.css';
@@ -18,6 +19,7 @@ export default async function MarketingLayout({
       variant="surface"
       height="auto"
       mobileNav={false}
+      banner={canaryBannerSlot()}
       topNav={<SharedTopNav />}>
       <div className={styles.shell}>
         <div className={styles.main}>{children}</div>

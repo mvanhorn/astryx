@@ -2,6 +2,7 @@
 
 'use client';
 
+import type {ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
@@ -19,7 +20,9 @@ import {CURRENT_TARGET, DOCS_VERSIONS, urlForTarget} from '../lib/docsVersions';
 export function CanaryBanner() {
   const pathname = usePathname();
 
-  if (CURRENT_TARGET !== 'canary') {return null;}
+  if (CURRENT_TARGET !== 'canary') {
+    return null;
+  }
 
   const stableHref = urlForTarget('latest', pathname);
   const stableLabel = DOCS_VERSIONS.latest.label;
@@ -41,4 +44,14 @@ export function CanaryBanner() {
       }
     />
   );
+}
+
+/**
+ * Slot value for AppShell's `banner` prop. Returns the banner element on canary
+ * builds and `null` otherwise, so latest builds render no banner wrapper at all
+ * (AppShell keys its banner region off `isRenderable`, and a bare `<CanaryBanner />`
+ * element always counts as renderable even when it returns `null`).
+ */
+export function canaryBannerSlot(): ReactNode {
+  return CURRENT_TARGET === 'canary' ? <CanaryBanner /> : null;
 }
