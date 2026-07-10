@@ -1,5 +1,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+/**
+ * @file Docs command integration tests
+ * @input Vitest, Commander, docs command/API, and reference-doc modules
+ * @output Verifies topic discovery, rendered content, and locale fallbacks
+ * @position CLI coverage for the reference documentation command
+ */
+
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -66,7 +73,23 @@ describe('hyphenated doc filenames', () => {
     await program.parseAsync(['node', 'astryx', 'docs', 'getting-started']);
 
     const output = console.log.mock.calls.map(c => c[0]).join('\n');
-    expect(output.length).toBeGreaterThan(0);
+    expect(output).toContain('Foundation setup');
+    expect(output).toContain(
+      '@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;',
+    );
+    expect(output).toContain('Without Tailwind');
+    expect(output).toContain('With Tailwind v4');
+    expect(output).toContain(
+      "@import 'tailwindcss/preflight.css' layer(base);",
+    );
+    expect(output).toContain(
+      "@import 'tailwindcss/utilities.css' layer(utilities);",
+    );
+    expect(output).toContain('Never load it unlayered');
+    expect(output).toContain(
+      'Utilities win because their layer is declared last',
+    );
+    expect(output).not.toContain('// globals.css');
     expect(console.error).not.toHaveBeenCalled();
   });
 
@@ -96,6 +119,44 @@ describe('migration docs', () => {
     const output = console.log.mock.calls.map(c => c[0]).join('\n');
     expect(output).toContain('Migration Guide');
     expect(output).toContain('Recommended Order');
+    expect(output).toContain('Migration audit checklist');
+    expect(output).toContain('Verify your foundation');
+    for (const primitive of ['button', 'input', 'card']) {
+      expect(output).toContain(
+        `${primitive}: getComputedStyle(primitives.${primitive}).paddingInline !== '0px'`,
+      );
+    }
+    expect(output).not.toContain(
+      "import '@astryxdesign/theme-neutral/theme.css';",
+    );
     expect(output).toContain('Map shadcn and Radix Primitives');
   });
+
+  it.each([
+    ['dense', {dense: true}],
+    ['zh', {zh: true}],
+  ])(
+    'falls back to English for new sections when %s translations are absent',
+    async (_, options) => {
+      const {docs: docsApi} = await import('../api/docs.mjs');
+      const gettingStarted = await docsApi(
+        'getting-started',
+        undefined,
+        options,
+      );
+      const migration = await docsApi('migration', undefined, options);
+
+      expect(gettingStarted.data.sections).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({title: 'Foundation setup'}),
+        ]),
+      );
+      expect(migration.data.sections).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({title: 'Migration audit checklist'}),
+          expect.objectContaining({title: 'Verify your foundation'}),
+        ]),
+      );
+    },
+  );
 });

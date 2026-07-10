@@ -1,5 +1,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+/**
+ * @file Getting-started reference documentation
+ * @input ReferenceDoc schema and Astryx CSS foundation contracts
+ * @output Exports the getting-started guide for CLI and docsite rendering
+ * @position Canonical onboarding topic for package, CSS, and component setup
+ */
+
 /** @type {import('../../core/src/docs-types').ReferenceDoc} */
 
 export const docs = {
@@ -51,23 +58,56 @@ export const docs = {
       ],
     },
     {
-      title: 'Add the theme CSS',
+      title: 'Foundation setup',
       content: [
         {
           type: 'prose',
-          text: 'Import the reset stylesheet and a theme in your global CSS file. Themes provide all design tokens (colors, spacing, radius, typography) as CSS custom properties.',
+          text: 'Declare the cascade order once, before every stylesheet import in your global CSS entrypoint. Choose the block that matches your stack. The optional app-reset import is commented out so the snippets work as-is; uncomment it and update the path when adopting an app that already has a reset or normalize stylesheet.',
+        },
+        {
+          type: 'prose',
+          text: 'Without Tailwind, load the Astryx reset, component styles, and selected theme:',
         },
         {
           type: 'code',
           lang: 'css',
-          label: 'globals.css',
-          code: `@import '@astryxdesign/core/reset.css';
+          code: `@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
+/* @import './app-reset.css' layer(reset); */
+@import '@astryxdesign/core/reset.css';
 @import '@astryxdesign/core/astryx.css';
 @import '@astryxdesign/theme-neutral/theme.css';`,
         },
         {
           type: 'prose',
-          text: 'Available themes: @astryxdesign/theme-neutral (muted minimal, a good starting point), @astryxdesign/theme-butter, @astryxdesign/theme-chocolate, @astryxdesign/theme-gothic (dark-only), @astryxdesign/theme-matcha, @astryxdesign/theme-stone, and @astryxdesign/theme-y2k. See `npx astryx docs theme` for the full theming guide.',
+          text: 'With Tailwind v4, keep its theme, Preflight, and utilities in their declared layers and load the Astryx token bridge before utilities:',
+        },
+        {
+          type: 'code',
+          lang: 'css',
+          code: `@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
+/* @import './app-reset.css' layer(reset); */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+@import '@astryxdesign/theme-neutral/theme.css';
+@import '@astryxdesign/core/tailwind-theme.css';
+@import 'tailwindcss/utilities.css' layer(utilities);`,
+        },
+        {
+          type: 'list',
+          style: 'unordered',
+          items: [
+            'Put every app reset or normalize stylesheet in `layer(reset)`, the lowest-priority layer. An unlayered reset overrides all named layers, while a reset in a later consumer layer can erase Astryx component padding.',
+            'With Tailwind, keep Preflight in `base` as required by [#3374](https://github.com/facebook/astryx/issues/3374): use `layer(base)` on the v4 import, or wrap `@tailwind base` in `@layer base { ... }` with v3. Never load it unlayered.',
+            'Keep consumer component styles and utilities in the `components` and `utilities` layers. Utilities win because their layer is declared last, not because their stylesheet is imported last.',
+          ],
+        },
+        {
+          type: 'prose',
+          text: 'Themes provide all design tokens (colors, spacing, radius, typography) as CSS custom properties. Replace `@astryxdesign/theme-neutral` with another Astryx theme package if needed; see `npx astryx docs theme` for the full theming guide.',
         },
       ],
     },

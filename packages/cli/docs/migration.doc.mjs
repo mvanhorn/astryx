@@ -1,5 +1,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+/**
+ * @file Migration reference documentation
+ * @input ReferenceDoc schema, migration workflow, and CSS foundation contract
+ * @output Exports migration guidance for CLI and docsite rendering
+ * @position Adoption guide for moving existing applications to Astryx
+ */
+
 /** @type {import('../../core/src/docs-types').ReferenceDoc} */
 
 export const docs = {
@@ -38,6 +45,29 @@ export const docs = {
             'Replace global workflows: command palette, settings popover, theme toggle, search, filters, create flows, and destructive confirmation dialogs.',
             'Remove legacy Tailwind classes from each completed surface, keeping only token-backed layout utilities or local wrappers that still need to be migrated.',
             'Verify both light and dark modes, keyboard navigation, responsive layout, and empty/error/loading states before moving to the next route.',
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Migration audit checklist',
+      content: [
+        {
+          type: 'prose',
+          text: 'Audit the existing CSS foundation before replacing components. Fix cascade risks first so a broad app rule cannot silently erase Astryx defaults across every migrated route.',
+        },
+        {
+          type: 'list',
+          style: 'unordered',
+          items: [
+            'Trace every global CSS entrypoint and imported stylesheet in the order the bundler emits them, including route-level imports and CSS injected by plugins.',
+            'Inventory resets and broad selectors such as `*`, `button`, `input`, `textarea`, and `[class]`; record any padding, margin, border, font, or `!important` declarations they apply.',
+            'Find every `@layer` order statement and layered import. Keep one canonical declaration before all imports: `reset, theme, base, astryx-base, astryx-theme, components, utilities`.',
+            'Move app resets and normalize styles into `layer(reset)`. Remove unlayered reset rules and reset imports placed after `astryx-base` or in a later consumer layer.',
+            'When Tailwind remains, keep Preflight in `base` (`layer(base)` on the v4 import or `@layer base { @tailwind base; }` with v3) and utilities in `utilities`; do not rely on stylesheet source order for priority.',
+            'Import the Astryx reset, component CSS, and one theme exactly once. Remove duplicate, inverted, or route-local copies that can create different foundations between screens.',
+            'Confirm PostCSS, framework, and bundler configuration preserve the declared layer order in development and production builds.',
+            'Run the foundation smoke test below in a real browser before migrating more routes, then repeat it after CSS pipeline or global-style changes.',
           ],
         },
       ],
@@ -84,7 +114,7 @@ npx astryx component Button --json`,
       content: [
         {
           type: 'prose',
-          text: 'Mount Theme at the app root so every migrated component reads the same token set. Keep the mode in application state if users can switch between light and dark themes.',
+          text: 'Apply the canonical CSS block from `npx astryx docs getting-started foundation` before mounting Theme. Mount Theme at the app root so every migrated component reads the same token set. Keep the mode in application state if users can switch between light and dark themes.',
         },
         {
           type: 'code',
@@ -93,7 +123,6 @@ npx astryx component Button --json`,
           code: `import {Theme} from '@astryxdesign/core/theme';
 import {neutralTheme} from '@astryxdesign/theme-neutral/built';
 import {useState} from 'react';
-import '@astryxdesign/theme-neutral/theme.css';
 
 export function AppRoot({children}: {children: React.ReactNode}) {
   const [mode, setMode] = useState<'system' | 'light' | 'dark'>('system');
@@ -107,23 +136,75 @@ export function AppRoot({children}: {children: React.ReactNode}) {
   );
 }`,
         },
+      ],
+    },
+    {
+      title: 'Verify your foundation',
+      content: [
         {
           type: 'prose',
-          text: 'When Tailwind remains in the app, declare layer order once in the global CSS file. design system reset and theme CSS should load before Tailwind utilities so migrated components keep design system defaults while legacy utility classes still work.',
+          text: 'Add one temporary route or test screen that renders a Button, TextInput, and Card together. Load it in a real browser so the production CSS pipeline, imports, and cascade layers all participate.',
         },
         {
           type: 'code',
-          lang: 'css',
-          label: 'Tailwind v4 coexistence',
-          code: `@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+          lang: 'tsx',
+          label: 'FoundationSmokeTest.tsx',
+          code: `'use client';
 
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "@astryxdesign/core/reset.css";
-@import "@astryxdesign/core/astryx.css";
-@import "@astryxdesign/theme-neutral/theme.css";
-@import "@astryxdesign/core/tailwind-theme.css";
-@import "tailwindcss/utilities.css" layer(utilities);`,
+import {useState} from 'react';
+import {Button} from '@astryxdesign/core/Button';
+import {Card} from '@astryxdesign/core/Card';
+import {TextInput} from '@astryxdesign/core/TextInput';
+import {VStack} from '@astryxdesign/core/VStack';
+
+export function FoundationSmokeTest() {
+  const [value, setValue] = useState('');
+
+  return (
+    <Card>
+      <VStack gap={3}>
+        <TextInput
+          label="Foundation input"
+          value={value}
+          onChange={setValue}
+        />
+        <Button label="Foundation button" />
+      </VStack>
+    </Card>
+  );
+}`,
+        },
+        {
+          type: 'prose',
+          text: 'Run this assertion in the browser console or inside a browser test on that screen. All three stable component roots must exist and retain non-zero inline padding.',
+        },
+        {
+          type: 'code',
+          lang: 'js',
+          label: 'Browser padding assertion',
+          code: `const primitives = {
+  button: document.querySelector('.astryx-button'),
+  input: document.querySelector('.astryx-text-input'),
+  card: document.querySelector('.astryx-card'),
+};
+
+for (const [name, element] of Object.entries(primitives)) {
+  if (!(element instanceof HTMLElement)) {
+    throw new Error(\`Missing Astryx \${name} on the smoke-test screen\`);
+  }
+}
+
+const hasInlinePadding = {
+  button: getComputedStyle(primitives.button).paddingInline !== '0px',
+  input: getComputedStyle(primitives.input).paddingInline !== '0px',
+  card: getComputedStyle(primitives.card).paddingInline !== '0px',
+};
+
+for (const [name, hasPadding] of Object.entries(hasInlinePadding)) {
+  if (!hasPadding) {
+    throw new Error(\`Astryx \${name} has zero inline padding\`);
+  }
+}`,
         },
       ],
     },
